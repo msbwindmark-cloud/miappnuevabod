@@ -9,6 +9,22 @@
     </div>
 </div>
 
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por servicio..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+    </div>
+    <div class="col-md-4">
+        <select name="servicio" class="form-select" onchange="this.form.submit()">
+            <option value="">Todos los servicios</option>
+            <option value="viernes" {% if servicio == 'viernes' %}selected{% endif %}>Viernes</option>
+            <option value="sabado" {% if servicio == 'sabado' %}selected{% endif %}>Sábado</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-secondary w-100"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+</form>
+
 <div class="card shadow-sm border-0 rounded-4">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -19,7 +35,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for c in cierres %}
+                {% for c in page_obj %}
                 <tr>
                     <td><a href="{% url 'caja:cierre_detail' c.pk %}" class="fw-bold">{{ c.fecha|date:"l d/m/Y" }}</a></td>
                     <td><span class="badge text-bg-secondary">{% if c.servicio == 'viernes' %}Vie{% else %}Sáb{% endif %}</span></td>
@@ -41,4 +57,5 @@
         </table>
     </div>
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}

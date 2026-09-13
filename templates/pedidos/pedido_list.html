@@ -5,8 +5,24 @@
     <h3 class="mb-0"><i class="bi bi-list-check"></i> Pedidos generados</h3>
     <a href="{% url 'pedidos:pedido_excel' %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Excel</a>
 </div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por proveedor..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+    </div>
+    <div class="col-md-4">
+        <select name="estado" class="form-select" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            {% for value, label in estados %}
+            <option value="{{ value }}" {% if estado == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-secondary w-100"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+</form>
 <div class="row g-3">
-    {% for p in pedidos %}
+    {% for p in page_obj %}
     <div class="col-md-6 col-lg-4">
         <div class="card shadow-sm border-0 rounded-4 {% if p.estado == 'enviado' %}border-success border-2{% endif %}">
             <div class="card-body">
@@ -32,4 +48,5 @@
     </div>
     {% endfor %}
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}

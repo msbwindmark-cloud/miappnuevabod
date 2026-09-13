@@ -8,11 +8,13 @@ import json
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
+
+from django.core.paginator import Paginator
 
 from openpyxl import Workbook
 
@@ -35,8 +37,14 @@ def producto_list(request):
     if cat:
         productos = productos.filter(categoria_id=cat)
     categorias = Categoria.objects.all()
+    filtros = {}
+    if q:
+        filtros['q'] = q
+    if cat:
+        filtros['categoria'] = cat
+    page_obj = Paginator(productos, 5).get_page(request.GET.get('page'))
     return render(request, 'inventario/producto_list.html', {
-        'productos': productos, 'categorias': categorias, 'q': q, 'cat': cat,
+        'page_obj': page_obj, 'categorias': categorias, 'q': q, 'cat': cat, 'filtros': filtros,
     })
 
 
@@ -81,8 +89,14 @@ def producto_delete(request, pk):
 
 @login_required
 def proveedor_list(request):
+    q = request.GET.get('q', '').strip()
     proveedores = Proveedor.objects.annotate(num_productos=Count('productos'))
-    return render(request, 'inventario/proveedor_list.html', {'proveedores': proveedores})
+    if q:
+        proveedores = proveedores.filter(nombre__icontains=q)
+    proveedores = proveedores.order_by('nombre')
+    filtros = {'q': q} if q else {}
+    page_obj = Paginator(proveedores, 5).get_page(request.GET.get('page'))
+    return render(request, 'inventario/proveedor_list.html', {'page_obj': page_obj, 'filtros': filtros, 'q': q})
 
 
 @login_required
@@ -115,8 +129,16 @@ def categoria_create(request):
 
 @login_required
 def conteo_list(request):
-    conteos = ConteoStock.objects.all()
-    return render(request, 'inventario/conteo_list.html', {'conteos': conteos})
+    q = request.GET.get('q', '').strip()
+    conteos = ConteoStock.objects.select_related('creado_por').all()
+    if q:
+        conteos = conteos.filter(
+            Q(fecha__icontains=q) | Q(creado_por__username__icontains=q)
+        )
+    conteos = conteos.order_by('-fecha')
+    filtros = {'q': q} if q else {}
+    page_obj = Paginator(conteos, 5).get_page(request.GET.get('page'))
+    return render(request, 'inventario/conteo_list.html', {'page_obj': page_obj, 'filtros': filtros, 'q': q})
 
 
 def _valores_actuales(request, fecha=None):

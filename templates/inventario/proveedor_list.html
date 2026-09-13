@@ -5,8 +5,16 @@
     <h3 class="mb-0"><i class="bi bi-truck"></i> Proveedores</h3>
     <a href="{% url 'inventario:proveedor_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nuevo</a>
 </div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-8">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar proveedor..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-secondary w-100"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+</form>
 <div class="row g-3">
-    {% for p in proveedores %}
+    {% for p in page_obj %}
     <div class="col-md-6 col-lg-4">
         <div class="card shadow-sm border-0 rounded-4 h-100">
             <div class="card-body">
@@ -21,4 +29,5 @@
     <div class="col-12 text-center text-muted py-5">Sin proveedores. <a href="{% url 'inventario:proveedor_create' %}">Añade uno</a>.</div>
     {% endfor %}
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}

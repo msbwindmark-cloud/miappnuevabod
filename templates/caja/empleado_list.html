@@ -5,12 +5,20 @@
     <h3 class="mb-0"><i class="bi bi-people"></i> Empleados</h3>
     <a href="{% url 'caja:empleado_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nuevo</a>
 </div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-8">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar empleado..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-secondary w-100"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+</form>
 <div class="card shadow-sm border-0 rounded-4">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead class="table-primary"><tr><th>Nombre</th><th>Activo</th></tr></thead>
             <tbody>
-                {% for e in empleados %}
+                {% for e in page_obj %}
                 <tr><td>{{ e.nombre }}</td><td>{% if e.activo %}<span class="badge text-bg-success">Sí</span>{% else %}<span class="badge text-bg-secondary">No</span>{% endif %}</td></tr>
                 {% empty %}
                 <tr><td colspan="2" class="text-center text-muted py-4">Sin empleados registrados.</td></tr>
@@ -19,4 +27,5 @@
         </table>
     </div>
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}

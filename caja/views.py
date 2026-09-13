@@ -14,6 +14,8 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 
+from django.core.paginator import Paginator
+
 from openpyxl import Workbook
 
 from .forms import CierreCajaForm, PagoPersonalFormSet
@@ -22,8 +24,23 @@ from .models import CierreCaja, PagoPersonal, Empleado
 
 @login_required
 def cierre_list(request):
+    q = request.GET.get('q', '').strip()
+    servicio = request.GET.get('servicio', '')
     cierres = CierreCaja.objects.select_related().all()
-    return render(request, 'caja/cierre_list.html', {'cierres': cierres})
+    if q:
+        cierres = cierres.filter(servicio__icontains=q)
+    if servicio:
+        cierres = cierres.filter(servicio=servicio)
+    cierres = cierres.order_by('-fecha')
+    filtros = {}
+    if q:
+        filtros['q'] = q
+    if servicio:
+        filtros['servicio'] = servicio
+    page_obj = Paginator(cierres, 5).get_page(request.GET.get('page'))
+    return render(request, 'caja/cierre_list.html', {
+        'page_obj': page_obj, 'filtros': filtros, 'q': q, 'servicio': servicio,
+    })
 
 
 @login_required
@@ -99,8 +116,14 @@ def cierre_copiar_whatsapp(request, pk):
 
 @login_required
 def empleado_list(request):
+    q = request.GET.get('q', '').strip()
     empleados = Empleado.objects.all()
-    return render(request, 'caja/empleado_list.html', {'empleados': empleados})
+    if q:
+        empleados = empleados.filter(nombre__icontains=q)
+    empleados = empleados.order_by('nombre')
+    filtros = {'q': q} if q else {}
+    page_obj = Paginator(empleados, 5).get_page(request.GET.get('page'))
+    return render(request, 'caja/empleado_list.html', {'page_obj': page_obj, 'filtros': filtros, 'q': q})
 
 
 @login_required

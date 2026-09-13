@@ -5,12 +5,20 @@
     <h3 class="mb-0"><i class="bi bi-clipboard-data"></i> Conteos realizados</h3>
     <a href="{% url 'inventario:conteo_nuevo' %}" class="btn btn-primary"><i class="bi bi-hand-index-thumb"></i> Nuevo conteo</a>
 </div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-8">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por fecha (dd/mm/aaaa) o autor..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-secondary w-100"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+</form>
 <div class="card shadow-sm border-0 rounded-4">
     <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
             <thead class="table-primary"><tr><th>Fecha</th><th>Autor</th><th>Líneas</th><th></th></tr></thead>
             <tbody>
-                {% for c in conteos %}
+                {% for c in page_obj %}
                 <tr>
                     <td class="fw-bold">{{ c.fecha|date:"l d/m/Y" }}</td>
                     <td>{{ c.creado_por|default:"—" }}</td>
@@ -27,4 +35,5 @@
         </table>
     </div>
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}

@@ -15,6 +15,7 @@ from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -225,18 +226,27 @@ def auditoria_log(request):
         registros = registros.filter(usuario__username__icontains=usuario)
 
     num_registros = registros.count()
-    registros = registros[:500]
+    registros = registros.order_by('-timestamp')
+    filtros = {}
+    if accion:
+        filtros['accion'] = accion
+    if modelo:
+        filtros['modelo'] = modelo
+    if usuario:
+        filtros['usuario'] = usuario
+    page_obj = Paginator(registros, 5).get_page(request.GET.get('page'))
 
     # Modelos con actividad para el filtro desplegable
     modelos = (RegistroAuditoria.objects
                .order_by('modelo').values_list('modelo', flat=True).distinct())
 
     return render(request, 'core/auditoria_log.html', {
-        'registros': registros,
+        'page_obj': page_obj,
         'num_registros': num_registros,
         'accion': accion,
         'modelo': modelo,
         'usuario': usuario,
         'modelos': modelos,
         'acciones': RegistroAuditoria.ACCIONES,
+        'filtros': filtros,
     })

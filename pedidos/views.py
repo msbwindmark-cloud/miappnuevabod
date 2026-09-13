@@ -10,7 +10,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.db.models import Sum
+from django.db.models import Q, Sum
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -33,10 +34,28 @@ from pedidos.models import Pedido, PedidoLinea
 
 @login_required
 def pedido_list(request):
+    q = request.GET.get('q', '').strip()
+    estado = request.GET.get('estado', '')
     pedidos = Pedido.objects.select_related('proveedor', 'conteo').annotate(
         total_lineas=Sum('lineas__unidades_a_pedir')
-    ).all()
-    return render(request, 'pedidos/pedido_list.html', {'pedidos': pedidos})
+    )
+    if q:
+        pedidos = pedidos.filter(
+            Q(proveedor__nombre__icontains=q) | Q(estado__icontains=q)
+        )
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+    pedidos = pedidos.order_by('-fecha', '-id')
+    filtros = {}
+    if q:
+        filtros['q'] = q
+    if estado:
+        filtros['estado'] = estado
+    page_obj = Paginator(pedidos, 5).get_page(request.GET.get('page'))
+    return render(request, 'pedidos/pedido_list.html', {
+        'page_obj': page_obj, 'filtros': filtros, 'q': q, 'estado': estado,
+        'estados': Pedido.ESTADOS,
+    })
 
 
 @login_required

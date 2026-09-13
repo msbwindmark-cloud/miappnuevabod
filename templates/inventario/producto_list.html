@@ -11,10 +11,10 @@
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-6">
-        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar producto...">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar producto..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
     </div>
     <div class="col-md-4">
-        <select name="categoria" class="form-select">
+        <select name="categoria" class="form-select" onchange="this.form.submit()">
             <option value="">Todas las categorías</option>
             {% for c in categorias %}<option value="{{ c.pk }}" {% if cat == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
         </select>
@@ -31,7 +31,7 @@
                 <tr><th>Producto</th><th>Categoría</th><th>Proveedor</th><th>Unidad</th><th>Stock</th><th>Mínimo</th><th>A pedir</th><th></th></tr>
             </thead>
             <tbody>
-                {% for p in productos %}
+                {% for p in page_obj %}
                 <tr>
                     <td class="fw-bold">
                         {% if p.es_alcohol %}🥃{% elif p.categoria.nombre == 'Refrescos y Mezcladores' %}🥤{% else %}📦{% endif %} {{ p.nombre }}
@@ -56,4 +56,5 @@
         </table>
     </div>
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}

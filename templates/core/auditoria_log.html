@@ -4,13 +4,13 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div>
         <h3 class="mb-0"><i class="bi bi-shield-check"></i> Trazabilidad completa</h3>
-        <small class="text-muted">Registro de todas las operaciones CRUD del sistema ({{ num_registros }} en total, mostrando {{ registros|length }})</small>
+        <small class="text-muted">Registro de todas las operaciones CRUD del sistema ({{ num_registros }} en total)</small>
     </div>
 </div>
 
 <form method="get" class="row g-2 mb-3 bg-light p-2 rounded-3">
     <div class="col-md-3">
-        <select name="accion" class="form-select">
+        <select name="accion" class="form-select" onchange="this.form.submit()">
             <option value="">Todas las acciones</option>
             {% for value, label in acciones %}
             <option value="{{ value }}" {% if accion == value %}selected{% endif %}>{{ label }}</option>
@@ -18,7 +18,7 @@
         </select>
     </div>
     <div class="col-md-3">
-        <select name="modelo" class="form-select">
+        <select name="modelo" class="form-select" onchange="this.form.submit()">
             <option value="">Todos los modelos</option>
             {% for m in modelos %}
             <option value="{{ m }}" {% if modelo == m %}selected{% endif %}>{{ m }}</option>
@@ -26,7 +26,7 @@
         </select>
     </div>
     <div class="col-md-3">
-        <input type="text" name="usuario" value="{{ usuario }}" class="form-control" placeholder="Usuario...">
+        <input type="text" name="usuario" value="{{ usuario }}" class="form-control" placeholder="Usuario..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if usuario %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
     </div>
     <div class="col-md-3">
         <button class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
@@ -43,7 +43,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for r in registros %}
+                {% for r in page_obj %}
                 <tr>
                     <td class="small text-nowrap">{{ r.timestamp|date:"d/m/Y H:i:s" }}</td>
                     <td>{{ r.usuario|default:"—" }}</td>
@@ -60,7 +60,7 @@
                     <td class="small font-monospace">{{ r.ip_address|default:"—" }}</td>
                     <td>
                         {% if r.cambios %}
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#det-{{ forloop.counter }}"><i class="bi bi-file-earmark-text"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="(function(b){var d=b.closest('tr').nextElementSibling;if(d){d.classList.toggle('show');}})(this)"><i class="bi bi-file-earmark-text"></i></button>
                         {% endif %}
                     </td>
                 </tr>
@@ -78,4 +78,5 @@
         </table>
     </div>
 </div>
+{% include '_paginacion.html' %}
 {% endblock %}
