@@ -250,8 +250,19 @@ def conteo_set(request, producto_id):
 
 @login_required
 def conteo_detail(request, pk):
+    """Detalle de un conteo con sus líneas, paginadas y filtrables."""
     conteo = get_object_or_404(ConteoStock, pk=pk)
-    return render(request, 'inventario/conteo_detail.html', {'conteo': conteo})
+    q = request.GET.get('q', '').strip()
+    lineas = conteo.lineas.select_related('producto__categoria').all()
+    if q:
+        lineas = lineas.filter(
+            Q(producto__nombre__icontains=q) | Q(producto__categoria__nombre__icontains=q)
+        )
+    filtros = {'q': q} if q else {}
+    page_obj = Paginator(lineas.order_by('producto__nombre'), 5).get_page(request.GET.get('page'))
+    return render(request, 'inventario/conteo_detail.html', {
+        'conteo': conteo, 'page_obj': page_obj, 'filtros': filtros, 'q': q,
+    })
 
 
 # ---------------------------------------------------------------- exportaciones
