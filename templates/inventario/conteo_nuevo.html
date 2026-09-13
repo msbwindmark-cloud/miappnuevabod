@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load filtros %}
+{% block title %}Contar stock (táctil){% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-hand-index-thumb"></i> Recuento de almacén</h3>
+        <p class="text-muted small mb-0">Toque + / − para contar. Se puede ajustar con teclado si se pulsa el número.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <input type="date" id="fecha-conteo" class="form-control" value="{{ fecha_hoy }}">
+        <span class="fw-bold text-primary" id="total-articulos">0</span> <span class="text-muted">contados</span>
+    </div>
+</div>
+
+<div class="position-relative">
+    <div class="card shadow-sm border-0 rounded-4 p-0">
+        <div class="card-header bg-primary p-0">
+            <ul class="nav nav-tabs card-header-tabs nav-fill" id="catTabs" role="tablist">
+                {% for c in categorias %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if forloop.first %}active{% endif %} text-uppercase small py-3" id="tab-{{ c.pk }}" data-bs-toggle="tab" data-bs-target="#cat-{{ c.pk }}" type="button" role="tab">
+                        {{ c.nombre }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="card-body tab-content" id="catContent">
+            {% for c in categorias %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="cat-{{ c.pk }}" role="tabpanel">
+                {% for p in c.productos.all %}
+                {% if p.activo %}
+                <div class="row g-2 align-items-center py-2 border-bottom tarjeta" data-producto="{{ p.pk }}">
+                    <div class="col-8 col-md-5">
+                        <div class="fw-bold text-truncate" style="max-width:100%;">{{ p.nombre }}</div>
+                        <div class="text-muted small">{{ p.get_unidad_display }} · mín. {{ p.stock_minimo }}</div>
+                    </div>
+                    <div class="col-4 col-md-7">
+                        <div class="d-flex justify-content-end align-items-center gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-stepper" data-accion="menos" data-producto="{{ p.pk }}"><i class="bi bi-dash-lg"></i></button>
+                            <input type="number" min="0" value="{{ valores|get_item:p.pk }}" data-producto="{{ p.pk }}"
+                                   class="form-control form-control-lg text-center stock-contador" style="width:90px;" data-valor-inicial="{{ valores|get_item:p.pk }}">
+                            <button type="button" class="btn btn-success btn-stepper" data-accion="mas" data-producto="{{ p.pk }}"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="sticky-actions bg-body py-2">
+        <button class="btn btn-primary btn-lg w-100" id="guardar-conteo"><i class="bi bi-check2-circle"></i> Guardar recuento</button>
+    </div>
+</div>
+
+<form method="post" id="form-conteo" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="fecha" id="input-fecha">
+    <input type="hidden" name="stock_final" id="input-stock">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function csrfToken(){
+    return document.querySelector('input[name=csrfmiddlewaretoken]').value;
+}
+async function ajustar(pid, delta){
+    const resp = await fetch(`/inventario/api/ajustar/${pid}/${delta}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'Content-Type': 'application/json'},
+    });
+    const data = await resp.json();
+    if (data.valor !== undefined) actualizarInput(pid, data.valor);
+}
+async function fijar(pid, valor){
+    const resp = await fetch(`/inventario/api/set/${pid}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({valor: valor}),
+    });
+    const data = await resp.json();
+    if (data.valor !== undefined) actualizarInput(pid, data.valor);
+}
+function actualizarInput(pid, valor){
+    const input = document.querySelector(`input.stock-contador[data-producto="${pid}"]`);
+    if (input) input.value = valor;
+    actualizarTotal();
+}
+function actualizarTotal(){
+    let total = 0;
+    document.querySelectorAll('.stock-contador').forEach(i => total += parseInt(i.value || 0));
+    document.getElementById('total-articulos').textContent = total;
+}
+document.querySelectorAll('.btn-stepper').forEach(b => {
+    b.addEventListener('click', () => {
+        const pid = b.dataset.producto;
+        ajustar(pid, b.dataset.accion === 'mas' ? 1 : -1);
+    });
+});
+document.querySelectorAll('.stock-contador').forEach(i => {
+    i.addEventListener('change', () => fijar(i.dataset.producto, Math.max(0, parseInt(i.value || 0))));
+    i.addEventListener('focus', () => i.select());
+});
+document.getElementById('guardar-conteo').addEventListener('click', () => {
+    const stock = {};
+    document.querySelectorAll('.stock-contador').forEach(i => {
+        stock[i.dataset.producto] = parseInt(i.value || 0);
+    });
+    document.getElementById('input-fecha').value = document.getElementById('fecha-conteo').value;
+    document.getElementById('input-stock').value = JSON.stringify(stock);
+    Swal.fire({
+        title: '¿Guardar recuento?',
+        html: `Se actualizarán los stocks de <strong>${document.querySelectorAll('.stock-contador').length} productos</strong>.<br>Después podrás generar los pedidos.`,
+        icon: 'question', showCancelButton: true, confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'Revisar',
+    }).then(r => { if (r.isConfirmed) document.getElementById('form-conteo').submit(); });
+});
+</script>
+{% endblock %}

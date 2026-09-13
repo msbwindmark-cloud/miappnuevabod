@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Histórico de cierres{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h3 class="mb-0"><i class="bi bi-journal-text"></i> Histórico de cierres de caja</h3>
+    <div>
+        <a href="{% url 'caja:cierre_excel' %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+        <a href="{% url 'caja:cierre_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nuevo cierre</a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-primary">
+                <tr>
+                    <th>Fecha</th><th>Servicio</th><th>Efectivo total</th><th>TPV/Bizum</th>
+                    <th>Fact. total</th><th>Pagos</th><th>Caja restante</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in cierres %}
+                <tr>
+                    <td><a href="{% url 'caja:cierre_detail' c.pk %}" class="fw-bold">{{ c.fecha|date:"l d/m/Y" }}</a></td>
+                    <td><span class="badge text-bg-secondary">{% if c.servicio == 'viernes' %}Vie{% else %}Sáb{% endif %}</span></td>
+                    <td>€{{ c.efectivo_total_caja|floatformat:2 }}</td>
+                    <td>€{{ c.total_tpv_bizum|floatformat:2 }}</td>
+                    <td class="fw-bold text-primary">€{{ c.facturacion_total|floatformat:0 }}</td>
+                    <td>€{{ c.total_pagos_personal|floatformat:0 }}</td>
+                    <td class="fw-bold">€{{ c.efectivo_final_requerido|floatformat:0 }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'caja:cierre_detail' c.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-5">
+                    No hay cierres todavía. <a href="{% url 'caja:cierre_create' %}">Crea el primero</a>.
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

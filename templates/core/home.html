@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Panel de control{% endblock %}
+{% block content %}
+<!-- Banner -->
+<div class="cartel rounded-4 p-4 mb-4 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1">¡Hola, {{ user.get_full_name|default:user.username }}! 👋</h2>
+            <p class="mb-0">💶 Caja · 📦 Inventario · 🛒 Pedidos · 📊 Auditoría — todo en un solo lugar.</p>
+        </div>
+        <div class="mt-2 mt-md-0">
+            <a href="{% url 'caja:cierre_create' %}" class="btn btn-light btn-lg"><i class="bi bi-cash-coin"></i> Nuevo cierre</a>
+            <a href="{% url 'inventario:conteo_nuevo' %}" class="btn btn-outline-light btn-lg"><i class="bi bi-hand-index-thumb"></i> Contar stock</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 rounded-4"><div class="card-body text-center">
+            <div class="text-muted small">Ventas este mes</div>
+            <div class="fs-3 fw-bold">€{{ total_ventas|floatformat:0 }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 rounded-4"><div class="card-body text-center">
+            <div class="text-muted small">Efectivo neto</div>
+            <div class="fs-3 fw-bold">€{{ total_efectivo|floatformat:0 }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 rounded-4"><div class="card-body text-center">
+            <div class="text-muted small">TPV / Bizum</div>
+            <div class="fs-3 fw-bold">€{{ total_tpv|floatformat:0 }}</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 rounded-4"><div class="card-body text-center">
+            <div class="text-muted small">Pagos al personal</div>
+            <div class="fs-3 fw-bold">€{{ pagos_personal|floatformat:0 }}</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4" >
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-exclamation-triangle"></i> Stock bajo mínimo</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Producto</th><th>Actual</th><th>Mínimo</th><th>A pedir</th></tr></thead>
+                    <tbody>
+                        {% for p in productos_bajo %}
+                        <tr {% if p.stock_actual < p.stock_minimo %}class="table-danger"{% endif %}>
+                            <td>{{ p.nombre }}</td>
+                            <td>{{ p.stock_actual }}</td>
+                            <td>{{ p.stock_minimo }}</td>
+                            <td>{{ p.a_pedir }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">Sin productos pendientes 🎉</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-cash-stack"></i> Últimos cierres de caja</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Fecha</th><th>Servicio</th><th>Total</th><th>Efectivo final</th></tr></thead>
+                    <tbody>
+                        {% for c in cierres %}
+                        <tr>
+                            <td><a href="{% url 'caja:cierre_detail' c.pk %}">{{ c.fecha|date:"d/m/Y" }}</a></td>
+                            <td>{{ c.get_servicio_display }}</td>
+                            <td class="fw-bold">€{{ c.facturacion_total|floatformat:0 }}</td>
+                            <td>€{{ c.efectivo_final_requerido|floatformat:0 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">Todavía no hay cierres.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-pie-chart"></i> Resumen rápido</div>
+            <div class="card-body">
+                <div class="row text-center g-2">
+                    <div class="col-6"><div class="fs-4 fw-bold">{{ num_productos }}</div><small class="text-muted">Productos activos</small></div>
+                    <div class="col-6"><div class="fs-4 fw-bold">{{ num_proveedores }}</div><small class="text-muted">Proveedores</small></div>
+                    <div class="col-6"><div class="fs-4 fw-bold">{{ num_cierres }}</div><small class="text-muted">Cierres este mes</small></div>
+                    <div class="col-6"><div class="fs-4 fw-bold">{{ empleados|length }}</div><small class="text-muted">Empleados activos</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-clipboard-data"></i> Últimos conteos</div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Fecha</th><th>Autor</th><th></th></tr></thead>
+                    <tbody>
+                        {% for c in conteos %}
+                        <tr><td>{{ c.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ c.creado_por|default:"—" }}</td>
+                            <td><a class="btn btn-sm btn-outline-primary" href="{% url 'inventario:conteo_detail' c.pk %}">Ver</a></td></tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted py-4">Sin conteos. ¡Haz el del domingo!</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

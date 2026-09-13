@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Conteos{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h3 class="mb-0"><i class="bi bi-clipboard-data"></i> Conteos realizados</h3>
+    <a href="{% url 'inventario:conteo_nuevo' %}" class="btn btn-primary"><i class="bi bi-hand-index-thumb"></i> Nuevo conteo</a>
+</div>
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-primary"><tr><th>Fecha</th><th>Autor</th><th>Líneas</th><th></th></tr></thead>
+            <tbody>
+                {% for c in conteos %}
+                <tr>
+                    <td class="fw-bold">{{ c.fecha|date:"l d/m/Y" }}</td>
+                    <td>{{ c.creado_por|default:"—" }}</td>
+                    <td>{{ c.lineas.count }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'inventario:conteo_detail' c.pk %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                        <a href="{% url 'pedidos:pedido_generar' c.pk %}" class="btn btn-sm btn-outline-success">Generar pedidos</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-5">Sin conteos. ¡El domingo toca contar! 🥃</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

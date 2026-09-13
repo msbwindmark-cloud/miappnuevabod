@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Proveedores{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h3 class="mb-0"><i class="bi bi-truck"></i> Proveedores</h3>
+    <a href="{% url 'inventario:proveedor_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Nuevo</a>
+</div>
+<div class="row g-3">
+    {% for p in proveedores %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body">
+                <h5 class="card-title fw-bold"><i class="bi bi-building"></i> {{ p.nombre }}</h5>
+                {% if p.contacto %}<p class="card-text small text-muted"><i class="bi bi-person-lines-fill"></i> {{ p.contacto }}</p>{% endif %}
+                <span class="badge text-bg-primary">{{ p.num_productos }} productos</span>
+                {% if p.notas %}<p class="card-text small text-muted mt-2 mb-0">{{ p.notas }}</p>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">Sin proveedores. <a href="{% url 'inventario:proveedor_create' %}">Añade uno</a>.</div>
+    {% endfor %}
+</div>
+{% endblock %}

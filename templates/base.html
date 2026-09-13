@@ -1,0 +1,150 @@
+{% load static %}{% load i18n %}<!DOCTYPE html>
+<html lang="es" data-bs-theme="{{ tema|default:'light' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍹</text></svg>">
+    <title>{% block title %}{% endblock %} · Chill Out La Bodeguita</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { padding-bottom: 70px; }
+        .navbar-brand { font-weight: 800; letter-spacing: .5px; }
+        .brand-accent { color: #ff4800; }
+        .btn-stepper {
+            min-height: 48px; width: 48px; font-size: 1.3rem; font-weight: 700;
+            border-radius: .8rem;
+        }
+        .stock-contador {
+            min-height: 48px; font-size: 1.35rem; font-weight: 700;
+        }
+        .cartel { background: linear-gradient(135deg, #ff4800, #ff6d00); color: #fff; }
+        .miniatura { max-height: 52px; }
+        .table th { white-space: nowrap; }
+        .sticky-actions { position: sticky; bottom: 0; z-index: 5; }
+        .form-control, .form-select { margin-bottom: .1rem; }
+        .form-check-input { margin-left: .25rem; }
+        ul.errorlist { color: #dc3545; list-style: none; padding-left: 0; margin-bottom: .1rem; font-size: .85rem; }
+        .tarjeta { transition: transform .15s; }
+        .tarjeta:active { transform: scale(.97); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'core:home' %}">
+            🍹 <span class="brand-accent">Chill Out</span> La Bodeguita
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'core:home' %}"><i class="bi bi-house-door"></i> Inicio</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">💶 Caja</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'caja:cierre_create' %}"><i class="bi bi-plus-circle"></i> Nuevo cierre</a></li>
+                        <li><a class="dropdown-item" href="{% url 'caja:cierre_list' %}"><i class="bi bi-journal-text"></i> Histórico de cierres</a></li>
+                        <li><a class="dropdown-item" href="{% url 'caja:empleado_list' %}"><i class="bi bi-people"></i> Empleados</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'caja:cierre_excel' %}"><i class="bi bi-file-earmark-excel"></i> Exportar a Excel</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">📦 Inventario</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'inventario:conteo_nuevo' %}"><i class="bi bi-hand-index-thumb"></i> Contar stock (táctil)</a></li>
+                        <li><a class="dropdown-item" href="{% url 'inventario:producto_list' %}"><i class="bi bi-box-seam"></i> Productos</a></li>
+                        <li><a class="dropdown-item" href="{% url 'inventario:proveedor_list' %}"><i class="bi bi-truck"></i> Proveedores</a></li>
+                        <li><a class="dropdown-item" href="{% url 'inventario:conteo_list' %}"><i class="bi bi-clipboard-data"></i> Conteos realizados</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'inventario:stock_excel' %}"><i class="bi bi-file-earmark-excel"></i> Stock a Excel</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">🛒 Pedidos</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'pedidos:pedido_list' %}"><i class="bi bi-list-check"></i> Pedidos generados</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'pedidos:pedido_excel' %}"><i class="bi bi-file-earmark-excel"></i> Exportar a Excel</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'auditoria:auditoria' %}"><i class="bi bi-graph-up-arrow"></i> Auditoría</a></li>
+                {% if user.is_superuser %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'core:auditoria_log' %}"><i class="bi bi-shield-check"></i> Trazabilidad</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}" target="_blank"><i class="bi bi-gear-fill"></i> Panel Admin</a></li>
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
+                        <i class="bi bi-person-circle"></i> {{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'core:cambiar_password' %}"><i class="bi bi-key"></i> Cambiar contraseña</a></li>
+                        <li><a class="dropdown-item" href="{% url 'core:actividad' %}"><i class="bi bi-clock-history"></i> Mi actividad</a></li>
+                        <li><form method="post" action="{% url 'core:cerrar_sesion_todos' %}">{% csrf_token %}<button class="dropdown-item" type="submit"><i class="bi bi-x-circle"></i> Cerrar otras sesiones</button></form></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'core:logout' %}"><i class="bi bi-box-arrow-right"></i> Salir</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endif %}
+
+<main class="container-fluid py-3 px-3 px-md-4">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center text-muted small py-3">
+    <div>{{ settings.EMPRESA }} · {{ settings.EMPRESA_CIUDAD }}</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script>
+function toast(titulo, texto, tipo) {
+    if (typeof Swal === 'undefined') return;
+    const iconos = {success:'success', error:'error', warning:'warning', info:'info'};
+    Swal.fire({
+        toast: true, position: 'top-end', icon: iconos[tipo] || 'info',
+        title: titulo, text: texto || '', showConfirmButton: false,
+        timer: 4200, timerProgressBar: true,
+    });
+}
+{% for msg in messages %}
+toast('Aviso', '{{ msg|escapejs }}', '{{ msg.tags|default:"info" }}');
+{% endfor %}
+function copiarWhatsApp(texto){
+    if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+    navigator.clipboard.writeText(texto).then(function(){
+        if (typeof Swal !== 'undefined') Swal.fire({icon:'success', title:'¡Copiado!', text:'Pega el resumen directamente en WhatsApp.'});
+        window.open('https://wa.me/?text='+encodeURIComponent(texto), '_blank');
+    }).catch(function(){
+        if (typeof Swal !== 'undefined') Swal.fire({icon:'error', title:'Error', text:'No se pudo copiar.'});
+    });
+}
+</script>
+<script>
+// Mostrar/ocultar contraseñas (llamado desde onclick inline)
+function verContrasena(btn) {
+    if (!btn) return;
+    var grupo = btn.closest ? (btn.closest('.input-group') || btn.closest('form')) : null;
+    if (!grupo) return;
+    var input = grupo.querySelector('input');
+    if (!input) return;
+    var show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    var ico = btn.querySelector('i');
+    if (ico) ico.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

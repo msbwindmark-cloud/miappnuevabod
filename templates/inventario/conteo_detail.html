@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Conteo {{ conteo.fecha|date:"d/m/Y" }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-clipboard-data"></i> Conteo {{ conteo.fecha|date:"l d/m/Y" }}</h3>
+        {% if conteo.creado_por %}<small class="text-muted">por {{ conteo.creado_por }}</small>{% endif %}
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'pedidos:pedido_generar' conteo.pk %}" class="btn btn-success"><i class="bi bi-cart-plus"></i> Generar pedidos</a>
+        <a href="{% url 'inventario:conteo_nuevo' %}" class="btn btn-outline-primary">Nuevo conteo</a>
+    </div>
+</div>
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-primary">
+                <tr><th>Producto</th><th>Categoría</th><th>Contado</th><th>Stock mínimo</th><th>A pedir</th></tr>
+            </thead>
+            <tbody>
+                {% for l in conteo.lineas.all %}
+                <tr>
+                    <td class="fw-bold">{{ l.producto.nombre }}</td>
+                    <td>{{ l.producto.categoria.nombre }}</td>
+                    <td class="fs-5 fw-bold">{{ l.cantidad_contada }}</td>
+                    <td>{{ l.producto.stock_minimo }}</td>
+                    <td>
+                        <span class="badge {% if l.producto.a_pedir %}text-bg-warning{% else %}text-bg-success{% endif %}">{{ l.producto.a_pedir }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-5">Conteo sin líneas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

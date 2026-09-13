@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Acceso restringido{% endblock %}
+{% block content %}
+<div class="row justify-content-center align-items-start mt-3 mt-md-5">
+    <div class="col-11 col-sm-9 col-md-6 col-lg-4">
+        <div class="card shadow border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="display-3">🍹</div>
+                    <h1 class="h3 fw-bold mt-2">Chill Out <span class="brand-accent">La Bodeguita</span></h1>
+                    <p class="text-muted mb-0">Control de caja, inventario y pedidos</p>
+                </div>
+
+                {% if lock %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-shield-lock fs-4 me-3"></i>
+                    <div>Demasiados intentos fallidos.<br>
+                    La cuenta está <strong>bloqueada</strong> temporalmente por seguridad.</div>
+                </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>{% endif %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.username.id_for_label }}">Usuario</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                            {{ form.username }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.password.id_for_label }}">Contraseña</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            {{ form.password }}
+                            <button type="button" class="btn btn-outline-secondary" tabindex="-1" aria-label="Ver contraseña" onclick="var g=this.closest('.input-group')||this.closest('form');var i=g.querySelector('input');var s=i.type==='password';i.type=s?'text':'password';var c=this.querySelector('i');if(c)c.className=s?'bi bi-eye-slash':'bi bi-eye';"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                        <label class="form-check-label" for="remember">Recordarme 30 días</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                        <i class="bi bi-box-arrow-in-right"></i> Entrar
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a class="small" href="{% url 'core:password_reset' %}">¿Olvidaste tu contraseña?</a>
+                </div>
+                <hr>
+                <p class="small text-muted text-center mb-0">
+                    <i class="bi bi-shield-check"></i> Acceso protegido · {{ max_attempts }} intentos por {{ settings.LOGIN_LOCK_MINUTES }} min
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

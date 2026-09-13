@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Auditoría de rendimiento{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Auditoría de rendimiento teórico</h3>
+        <p class="text-muted small mb-0">Regla local: <strong>{{ copas_por_botella }} copas por botella</strong> de alcohol · 1 copa = 1 refresco</p>
+    </div>
+    <a href="{% url 'auditoria:auditoria_excel' %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+</div>
+
+{% for r in resultados %}
+<div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-header bg-primary text-white fw-bold">
+        <i class="bi bi-calendar-range"></i> {{ r.conteo_ini.fecha|date:"d/m/Y" }} → {{ r.conteo_fin.fecha|date:"d/m/Y" }}
+    </div>
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="border rounded-3 p-2 text-center">
+                    <div class="small text-muted">Botellas alcohol consumidas</div>
+                    <div class="fs-3 fw-bold">{{ r.botellas_alcohol }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="border rounded-3 p-2 text-center">
+                    <div class="small text-muted">Copas teóricas</div>
+                    <div class="fs-3 fw-bold">{{ r.copas_total }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="border rounded-3 p-2 text-center">
+                    <div class="small text-muted">Fact. teórica estimada</div>
+                    <div class="fs-3 fw-bold text-success">€{{ r.facturacion_teorica|floatformat:0 }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="border rounded-3 p-2 text-center {% if r.desviacion < 0 %}bg-danger-subtle{% else %}bg-success-subtle{% endif %}">
+                    <div class="small text-muted">Desviación (teórica − real)</div>
+                    <div class="fs-3 fw-bold {% if r.desviacion < 0 %}text-danger{% else %}text-success{% endif %}">€{{ r.desviacion|floatformat:0 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <h6 class="fw-bold">🥃 Consumo de alcohol</h6>
+                <table class="table table-sm small mb-0">
+                    <thead><tr><th>Producto</th><th>Δ</th><th>Copas</th><th>€ teoría</th></tr></thead>
+                    <tbody>
+                        {% for t in r.diff_alcohol %}
+                        <tr>
+                            <td>{{ t.producto }}</td><td>{{ t.unidad }}</td>
+                            <td>{{ t.copas_teoricas }}</td>
+                            <td>€{{ t.copas_teoricas|floatformat:0 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-muted">Sin consumo de alcohol detectado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">🥤 Refrescos / mezcladores</h6>
+                <table class="table table-sm small mb-0">
+                    <thead><tr><th>Producto</th><th>Δ unidades</th></tr></thead>
+                    <tbody>
+                        {% for t in r.diff_refrescos %}
+                        <tr><td>{{ t.producto }}</td><td>{{ t.unidad }}</td></tr>
+                        {% empty %}
+                        <tr><td class="text-muted">Sin consumo de refrescos detectado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="alert alert-light border mt-3 mb-0 small">
+                    <i class="bi bi-info-circle"></i>
+                    Refrescos consumidos: <strong>{{ r.refrescos_consumidos }}</strong> ·
+                    Ratio refrescos/copa: <strong>{{ r.ratio_refresco_copa|floatformat:2 }}</strong>
+                    <br><small class="text-muted">Facturación real de la semana: €{{ r.facturacion_real|floatformat:0 }} ({{ r.cierres|length }} cierre(s))</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-graph-up display-4 d-block mb-2"></i>
+        Necesitas al menos <strong>dos conteos</strong> de stock para auditar una semana.
+        <a href="{% url 'inventario:conteo_nuevo' %}">Hacer conteo</a>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

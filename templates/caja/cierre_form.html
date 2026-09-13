@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-cash-coin"></i> {{ titulo }}</div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4">
+                            <label class="form-label">{{ form.fecha.label }}</label>{{ form.fecha }}
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label">{{ form.servicio.label }}</label>{{ form.servicio }}
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.fondo_caja.label }}</label>
+                            <div class="input-group"><span class="input-group-text">€</span>{{ form.fondo_caja }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.efectivo_total_caja.label }}</label>
+                            <div class="input-group"><span class="input-group-text">€</span>{{ form.efectivo_total_caja }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.total_tpv_bizum.label }}</label>
+                            <div class="input-group"><span class="input-group-text">€</span>{{ form.total_tpv_bizum }}</div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 fw-bold text-primary"><i class="bi bi-people"></i> Pagos al personal (en efectivo)</h6>
+                    {{ formset.management_form }}
+                    <div id="pagos-cont">
+                        {% for f in formset %}
+                        <div class="row g-2 mb-2 fila-pago align-items-center">
+                            <div class="d-none">{{ f.id }}</div>
+                            <div class="col-6 col-md-6">{{ f.empleado }}</div>
+                            <div class="col-4 col-md-4">
+                                <div class="input-group"><span class="input-group-text">€</span>{{ f.importe }}</div>
+                            </div>
+                            <div class="col-2 col-md-2 d-flex align-items-center">
+                                {% if f.DELETE %}<button type="button" class="btn btn-outline-danger btn-eliminar-pago" title="Eliminar este pago" onclick="(function(b){var f=b.closest('.fila-pago');var d=b.nextElementSibling;if(d){var ch=d.querySelector('input');if(ch){ch.checked=true;f.style.display='none';return;}}f.remove();})(this)"><i class="bi bi-trash"></i></button><div class="d-none">{{ f.DELETE }}</div>{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="(function(){var cont=document.getElementById('pagos-cont');var t=document.getElementById('id_pagos-TOTAL_FORMS');if(!t){return;}var n=parseInt(t.value,10)||0;var m=cont.querySelector('.fila-pago');if(!m){return;}var c=m.cloneNode(true);c.style.display='';c.querySelectorAll('.d-none').forEach(function(x){x.remove();});var s=c.querySelector('select');if(s){s.name='pagos-'+n+'-empleado';s.id='id_pagos-'+n+'-empleado';s.value='';}var i=c.querySelector('input[type=number]');if(i){i.name='pagos-'+n+'-importe';i.id='id_pagos-'+n+'-importe';i.value='';}cont.appendChild(c);t.value=n+1;})()"><i class="bi bi-plus-lg"></i> Añadir pago a un empleado</button>
+
+                    {% if not editar %}
+                    <div class="alert alert-info mt-4 small">
+                        <i class="bi bi-calculator"></i> Cálculos automáticos al guardar:
+                        Efectivo neto = Efectivo total − Fondo · Total noche = Efectivo neto + TPV · Caja restante = Efectivo total − Pagos
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Guardar cierre</button>
+                        <a href="{% url 'caja:cierre_list' %}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

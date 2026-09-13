@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Cierre {{ cierre.fecha|date:"d/m/Y" }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h3 class="mb-0"><i class="bi bi-cash-coin"></i> Cierre {{ cierre.fecha|date:"l d/m/Y" }} <span class="badge text-bg-secondary">{{ cierre.get_servicio_display }}</span></h3>
+    <div>
+        <a href="{% url 'caja:cierre_edit' cierre.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
+        <button class="btn btn-success" onclick="(function(t){if(!navigator.clipboard){alert('Portapapeles no disponible.');return;}navigator.clipboard.writeText(t).then(function(){if(typeof Swal!=='undefined'){Swal.fire({icon:'success',title:'¡Copiado!',text:'Pega el resumen en WhatsApp.'});}else{alert('¡Resumen copiado! Pégalo en WhatsApp.');}}).catch(function(){alert('No se pudo copiar.');});})('{{ cierre.resumen_whatsapp|escapejs }}')"><i class="bi bi-whatsapp"></i> Copiar a WhatsApp</button>
+        <form method="post" action="{% url 'caja:cierre_delete' cierre.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este cierre?')">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-primary text-white fw-bold">Datos de entrada</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-7">Fondo de caja inicial</dt><dd class="col-5 text-end">€{{ cierre.fondo_caja|floatformat:2 }}</dd>
+                    <dt class="col-7">Efectivo total en caja</dt><dd class="col-5 text-end">€{{ cierre.efectivo_total_caja|floatformat:2 }}</dd>
+                    <dt class="col-7">Total TPV / Bizum</dt><dd class="col-5 text-end">€{{ cierre.total_tpv_bizum|floatformat:2 }}</dd>
+                    <dt class="col-7">Pagos al personal</dt><dd class="col-5 text-end">€{{ cierre.total_pagos_personal|floatformat:2 }}</dd>
+                </dl>
+                {% if cierre.observaciones %}<hr><p class="small text-muted mb-0"><i class="bi bi-chat-left-text"></i> {{ cierre.observaciones }}</p>{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 h-100 text-bg-dark">
+            <div class="card-header bg-primary text-white fw-bold">Cálculos automáticos</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-7">Facturación efectivo neto</dt>
+                    <dd class="col-5 text-end fw-bold">€{{ cierre.facturacion_efectivo_neto|floatformat:2 }}</dd>
+                    <dt class="col-7">Facturación total noche</dt>
+                    <dd class="col-5 text-end fs-5 fw-bold text-success">€{{ cierre.facturacion_total|floatformat:2 }}</dd>
+                    <dt class="col-7">Efectivo final requerido en caja</dt>
+                    <dd class="col-5 text-end fw-bold text-warning">€{{ cierre.efectivo_final_requerido|floatformat:2 }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4 mt-3">
+    <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-broadcast"></i> Resumen para WhatsApp</div>
+    <div class="card-body">
+        <div class="p-3 bg-light rounded-3 mb-3" id="resumen-whatsapp" style="white-space:pre-wrap;">{{ cierre.resumen_whatsapp }}</div>
+        <button class="btn btn-success btn-lg w-100" onclick="(function(t){if(!navigator.clipboard){alert('Portapapeles no disponible.');return;}navigator.clipboard.writeText(t).then(function(){window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}).catch(function(){alert('No se pudo copiar.');});})('{{ cierre.resumen_whatsapp|escapejs }}')"><i class="bi bi-whatsapp"></i> Copiar y abrir WhatsApp</button>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-3 mt-3">
+    <a href="{% url 'caja:cierre_excel' %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Exportar todos a Excel</a>
+    <a href="{% url 'caja:cierre_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+{% endblock %}

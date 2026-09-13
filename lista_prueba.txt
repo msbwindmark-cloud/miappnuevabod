@@ -1,0 +1,94 @@
+## Respuesta sobre "Recordarme" (30 días)
+
+Sí, funciona. En `core/views.py:80-81`, al marcar el checkbox se ejecuta:
+
+```python
+if request.POST.get('remember'):
+    request.session.set_expiry(60 * 60 * 24 * 30)  # 30 días
+```
+
+**Cómo funciona mecánicamente:**
+- Django guarda la sesión en la BD (`django_session`) y le da al navegador una cookie `sessionid` (solo la clave).
+- Si marcas "Recordarme" → `set_expiry(30 días)` hace que la cookie tenga **caducidad fija de 30 días** → sobrevive al cerrar el navegador y sigue válida aunque apagues/ enciendas el PC.
+- Si NO lo marcas → la cookie es de "sesión de navegador": se borra al cerrar el navegador (aunque al día siguiente, si el navegador sigue abierto, sigues dentro).
+
+**Cómo comprobarlo tú mismo:** en Chrome, entra marcando la casilla → F12 → Application → Cookies → `sessionid` → "Expires" debe estar a ~30 días. Sin marcar, aparece "(Session)".
+
+**Detalle importante:** el bloqueo por intentos es por **usuario + IP**. Si haces la prueba de 5 fallos con `admin`, te bloqueas tú mismo 30 min. Haz esa prueba con un nombre inventado (ej. `pruebatest123`).
+
+---
+
+
+
+Así funciona `cerrar_sesion_todos` (`core/views.py:188`):
+
+**Cada vez que entras** (sesión activa), Django guarda una fila en la tabla `django_session` con una clave (`session_key` = lo que viaja en tu cookie `sessionid`), y **dentro de esa fila guarda tu `user_id`** codificado. Si entras desde 2 dispositivos, hay 2 filas tuyas.
+
+**Cuando pulsas la opción** (solo vía POST, con CSRF), el código:
+1. Recorre **todas las sesiones** guardadas en la BD
+2. Descifra el contenido de cada una (`get_decoded()`)
+3. Si dentro hay tu `user_id` **y** no es la clave de la sesión actual → **borra esa fila**
+
+Resultado: en los otros dispositivos la cookie `sessionid` aún existe en el navegador, pero al pedir cualquier página Django no encuentra esa sesión en la BD → **te expulsa y te manda al login**. Tu sesión actual (donde pulsaste) no se toca.
+
+**Cómo probarlo en A9:** abre Chrome normal y una ventana de incógnito → entra con `admin` en ambas → pulsa "Cerrar otras sesiones" en una → al recargar la otra te saca; la primera (donde pulsaste) sigue dentro.
+
+Nota: solo afecta a tus propias sesiones (filtra por tu `user_id`), no a las de otros usuarios.
+
+-----------------------------
+
+
+## Lista de pruebas (pasa paso a paso y dime qué falla)
+
+### A. Login y seguridad
+- [ ] A1. Entrar en http://127.0.0.1:8000/ → redirige al login
+- [ ] A2. Login correcto `admin/admin12345` → te lleva a Inicio, mensaje "Bienvenido"
+- [ ] A3. Login con "Recordarme" marcado → cookie `sessionid` caduca en 30 días (F12 → Cookies)
+- [ ] A4. Login sin marcar → cookie "(Session)" 
+- [ ] A5. Contraseña incorrecta → mensaje "Usuario o contraseña incorrectos"
+- [ ] A6. Probar el bloqueo: 5 veces seguidas con `pruebatest123` + password inventada → a la 6ª dice "Cuenta bloqueada 30 minutos"
+- [ ] A7. Menú usuario → **Cambiar contraseña** → te la cambia y te desloguea o pide nueva
+- [ ] A8. Menú usuario → **Mi actividad** → ves tus accesos/horarios/IPs
+- [ ] A9. Menú usuario → **Cerrar otras sesiones** → funciona
+- [ ] A10. **Salir** → cierra sesión y redirige a login
+
+### B. Caja
+- [ ] B1. Caja > Nuevo cierre (`/caja/nuevo/`)
+- [ ] B2. Rellenar: Fondo 200, Efectivo 1000, TPV 800, añadir pago Antonio 150 → guardar
+- [ ] B3. En el detalle ver: Efectivo Neto 800€, Total 1600€, Caja Restante 850€, y el resumen WhatsApp exacto
+- [ ] B4. Copiar a WhatsApp → se abre wa.me con el mensaje
+- [ ] B5. Editar el cierre y volver a guardar → recalculado
+- [ ] B6. Eliminar un cierre de prueba → confirmación y desaparece
+- [ ] B7. Exportar a Excel (`/caja/excel/`) → descarga el archivo y abre bien
+- [ ] B8. Caja > Empleados → listado/dar de alta/baja
+
+### C. Inventario
+- [ ] C1. Inventario > Contar stock (táctil) (`/inventario/conteo/nuevo/`)
+- [ ] C2. Pestañas por categoría entran bien (Rones, Whiskys, Ginebras...) 
+- [ ] C3. Botones +/− grandes funcionan en móvil (pantalla pequeña del navegador)
+- [ ] C4. Guardar conteo → aparece en "Conteos realizados"
+- [ ] C5. Inventario > Productos → listado con stock y columna "A pedir" correcta
+- [ ] C6. Crear/editar un producto de prueba
+- [ ] C7. Inventario > Proveedores → listado correcto
+- [ ] C8. Exportar stock a Excel → descarga y abre
+
+### D. Pedidos
+- [ ] D1. Entrar en un conteo → botón "Generar pedidos"
+- [ ] D2. Saltan a "Pedidos generados" los pedidos por proveedor que tengan unidades a pedir (>0)
+- [ ] D3. Abrir un pedido → detalle con líneas
+- [ ] D4. Cambiar estado a "Enviado al proveedor" → revisa tu Gmail (llega el email)
+- [ ] D5. Descargar PDF → se abre el PDF formateado y bien
+- [ ] D6. Texto WhatsApp → texto plano con "• 2 x Ron Barceló..." 
+- [ ] D7. Exportar pedidos a Excel → descarga
+
+### E. Auditoría
+- [ ] E1. Auditoría (`/auditoria/`) → aparecen semanas con botellas consumidas, copas teóricas (x8), facturación teórica vs real y desviación
+- [ ] E2. Exportar auditoría a Excel → descarga
+
+### F. Superuser (admin)
+- [ ] F1. Barra superior muestra **Trazabilidad** y **Panel Admin**
+- [ ] F2. Panel Admin (`/admin/`) → ves los 12 modelos y datos demo
+- [ ] F3. Trazabilidad (`/registro/`) → ves el registro de las acciones que has hecho en B/C/D (crear cierre, modificar, eliminar, etc.)
+- [ ] F4. En admin, editar un producto desde Django admin → aparece en Trazabilidad
+
+Ve marcando la lista y ve diciéndome si algo falla (pantalla de error, 500, valores raros...). Cuando termines, si todo está OK me dices y lo cerramos; si algo falla, lo arreglo.
