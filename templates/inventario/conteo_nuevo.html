@@ -9,7 +9,7 @@
     </div>
     <div class="d-flex align-items-center gap-2">
         <input type="date" id="fecha-conteo" class="form-control" value="{{ fecha_hoy }}">
-        <span class="fw-bold text-primary" id="total-articulos">0</span> <span class="text-muted">contados</span>
+        <span class="fw-bold text-primary" id="total-articulos">{{ total_inicial }}</span> <span class="text-muted">contados</span>
     </div>
 </div>
 
@@ -19,7 +19,7 @@
             <ul class="nav nav-tabs card-header-tabs nav-fill" id="catTabs" role="tablist">
                 {% for c in categorias %}
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link {% if forloop.first %}active{% endif %} text-uppercase small py-3" id="tab-{{ c.pk }}" data-bs-toggle="tab" data-bs-target="#cat-{{ c.pk }}" type="button" role="tab">
+                    <button class="nav-link {% if forloop.first %}active{% endif %} text-uppercase small py-3" id="tab-{{ c.pk }}" type="button" role="tab" onclick="(function(b){var t='cat-{{ c.pk }}';document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('show');p.classList.remove('active');});document.querySelectorAll('#catTabs .nav-link').forEach(function(x){x.classList.remove('active');});b.classList.add('active');var pane=document.getElementById(t);if(pane){pane.classList.add('show');pane.classList.add('active');}})(this)">
                         {{ c.nombre }}
                     </button>
                 </li>
@@ -38,10 +38,12 @@
                     </div>
                     <div class="col-4 col-md-7">
                         <div class="d-flex justify-content-end align-items-center gap-2">
-                            <button type="button" class="btn btn-outline-secondary btn-stepper" data-accion="menos" data-producto="{{ p.pk }}"><i class="bi bi-dash-lg"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-stepper" data-accion="menos" data-producto="{{ p.pk }}" onclick="(function(b){var i=b.parentElement.querySelector('input.stock-contador');if(!i){return;}var v=Math.max(0,(parseInt(i.value)||0)-1);i.value=v;var t=0;document.querySelectorAll('.stock-contador').forEach(function(x){t+=(parseInt(x.value)||0);});document.getElementById('total-articulos').textContent=t;var p=i.getAttribute('data-producto');fetch('/inventario/api/ajustar/'+p+'/-1/',{method:'POST',headers:{'X-CSRFToken':document.querySelector('input[name=csrfmiddlewaretoken]').value}}).then(function(r){if(r.ok){return r.json();}}).catch(function(){});})(this)"><i class="bi bi-dash-lg"></i></button>
                             <input type="number" min="0" value="{{ valores|get_item:p.pk }}" data-producto="{{ p.pk }}"
-                                   class="form-control form-control-lg text-center stock-contador" style="width:90px;" data-valor-inicial="{{ valores|get_item:p.pk }}">
-                            <button type="button" class="btn btn-success btn-stepper" data-accion="mas" data-producto="{{ p.pk }}"><i class="bi bi-plus-lg"></i></button>
+                                   class="form-control form-control-lg text-center stock-contador" style="width:90px;"
+                                   onfocus="this.select()"
+                                   onchange="(function(i){var v=Math.max(0,parseInt(i.value)||0);i.value=v;var t=0;document.querySelectorAll('.stock-contador').forEach(function(x){t+=(parseInt(x.value)||0);});document.getElementById('total-articulos').textContent=t;var p=i.getAttribute('data-producto');fetch('/inventario/api/set/'+p+'/',{method:'POST',headers:{'X-CSRFToken':document.querySelector('input[name=csrfmiddlewaretoken]').value},body:'valor='+encodeURIComponent(v)}).then(function(r){if(r.ok){return r.json();}}).catch(function(){});})(this)">
+                            <button type="button" class="btn btn-success btn-stepper" data-accion="mas" data-producto="{{ p.pk }}" onclick="(function(b){var i=b.parentElement.querySelector('input.stock-contador');if(!i){return;}var v=(parseInt(i.value)||0)+1;i.value=v;var t=0;document.querySelectorAll('.stock-contador').forEach(function(x){t+=(parseInt(x.value)||0);});document.getElementById('total-articulos').textContent=t;var p=i.getAttribute('data-producto');fetch('/inventario/api/ajustar/'+p+'/1/',{method:'POST',headers:{'X-CSRFToken':document.querySelector('input[name=csrfmiddlewaretoken]').value}}).then(function(r){if(r.ok){return r.json();}}).catch(function(){});})(this)"><i class="bi bi-plus-lg"></i></button>
                         </div>
                     </div>
                 </div>
@@ -53,7 +55,7 @@
     </div>
 
     <div class="sticky-actions bg-body py-2">
-        <button class="btn btn-primary btn-lg w-100" id="guardar-conteo"><i class="bi bi-check2-circle"></i> Guardar recuento</button>
+        <button class="btn btn-primary btn-lg w-100" id="guardar-conteo" onclick="(function(){var st={};document.querySelectorAll('.stock-contador').forEach(function(i){st[i.getAttribute('data-producto')]=parseInt(i.value)||0;});document.getElementById('input-fecha').value=document.getElementById('fecha-conteo').value;document.getElementById('input-stock').value=JSON.stringify(st);var n=document.querySelectorAll('.stock-contador').length;function doIt(){document.getElementById('form-conteo').submit();}if(typeof Swal!=='undefined'){Swal.fire({title:'¿Guardar recuento?',html:'Se actualizarán los stocks de <strong>'+n+' productos</strong>.<br>Después podrás generar los pedidos.',icon:'question',showCancelButton:true,confirmButtonText:'Sí, guardar',cancelButtonText:'Revisar'}).then(function(r){if(r.isConfirmed){doIt();}});}else{if(confirm('¿Guardar el recuento ('+n+' productos)?')){doIt();}}})()"><i class="bi bi-check2-circle"></i> Guardar recuento</button>
     </div>
 </div>
 
@@ -62,63 +64,4 @@
     <input type="hidden" name="fecha" id="input-fecha">
     <input type="hidden" name="stock_final" id="input-stock">
 </form>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function csrfToken(){
-    return document.querySelector('input[name=csrfmiddlewaretoken]').value;
-}
-async function ajustar(pid, delta){
-    const resp = await fetch(`/inventario/api/ajustar/${pid}/${delta}/`, {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrfToken(), 'Content-Type': 'application/json'},
-    });
-    const data = await resp.json();
-    if (data.valor !== undefined) actualizarInput(pid, data.valor);
-}
-async function fijar(pid, valor){
-    const resp = await fetch(`/inventario/api/set/${pid}/`, {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded'},
-        body: new URLSearchParams({valor: valor}),
-    });
-    const data = await resp.json();
-    if (data.valor !== undefined) actualizarInput(pid, data.valor);
-}
-function actualizarInput(pid, valor){
-    const input = document.querySelector(`input.stock-contador[data-producto="${pid}"]`);
-    if (input) input.value = valor;
-    actualizarTotal();
-}
-function actualizarTotal(){
-    let total = 0;
-    document.querySelectorAll('.stock-contador').forEach(i => total += parseInt(i.value || 0));
-    document.getElementById('total-articulos').textContent = total;
-}
-document.querySelectorAll('.btn-stepper').forEach(b => {
-    b.addEventListener('click', () => {
-        const pid = b.dataset.producto;
-        ajustar(pid, b.dataset.accion === 'mas' ? 1 : -1);
-    });
-});
-document.querySelectorAll('.stock-contador').forEach(i => {
-    i.addEventListener('change', () => fijar(i.dataset.producto, Math.max(0, parseInt(i.value || 0))));
-    i.addEventListener('focus', () => i.select());
-});
-document.getElementById('guardar-conteo').addEventListener('click', () => {
-    const stock = {};
-    document.querySelectorAll('.stock-contador').forEach(i => {
-        stock[i.dataset.producto] = parseInt(i.value || 0);
-    });
-    document.getElementById('input-fecha').value = document.getElementById('fecha-conteo').value;
-    document.getElementById('input-stock').value = JSON.stringify(stock);
-    Swal.fire({
-        title: '¿Guardar recuento?',
-        html: `Se actualizarán los stocks de <strong>${document.querySelectorAll('.stock-contador').length} productos</strong>.<br>Después podrás generar los pedidos.`,
-        icon: 'question', showCancelButton: true, confirmButtonText: 'Sí, guardar',
-        cancelButtonText: 'Revisar',
-    }).then(r => { if (r.isConfirmed) document.getElementById('form-conteo').submit(); });
-});
-</script>
 {% endblock %}

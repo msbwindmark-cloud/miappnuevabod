@@ -164,6 +164,7 @@ def conteo_nuevo(request):
         'categorias': categorias,
         'valores': valores,
         'fecha_hoy': timezone.localdate().isoformat(),
+        'total_inicial': sum(valores.values()) if valores else 0,
     })
 
 
