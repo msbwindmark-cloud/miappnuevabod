@@ -139,7 +139,7 @@ def pedido_pdf(request, pk):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = (
-        f'attachment; filename="pedido_{pedido.pk}_{pedido.proveedor.nombre}.pdf"'
+        f'attachment; filename="pedido_{pedido.pk}_{pedido.proveedor.nombre}_{timezone.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
     )
 
     doc = SimpleDocTemplate(response, pagesize=A4,
@@ -214,7 +214,21 @@ def _email_pedido(request, pedido):
         f'{lineas}\n\nTotal unidades: {pedido.total_unidades}\n\n'
         f'Contacto proveedor: {pedido.proveedor.contacto}'
     )
-    send_mail(
-        asunto, cuerpo, settings.DEFAULT_FROM_EMAIL,
-        list(settings.EMAIL_NOTIFY_TO), fail_silently=True,
-    )
+    dest = ', '.join(settings.EMAIL_NOTIFY_TO)
+    print('=== EMAIL SEND ===')
+    print('to:', dest)
+    print('from:', settings.DEFAULT_FROM_EMAIL)
+    print('host:', settings.EMAIL_HOST, 'port:', settings.EMAIL_PORT, 'tls:', settings.EMAIL_USE_TLS)
+    print('user:', settings.EMAIL_HOST_USER)
+    print('assunto:', asunto)
+    try:
+        send_mail(
+            asunto, cuerpo, settings.DEFAULT_FROM_EMAIL,
+            list(settings.EMAIL_NOTIFY_TO), fail_silently=False,
+        )
+        print('EMAIL SENT OK')
+        messages.success(request, f'Pedido marcado como "Enviado". Email de notificación enviado a: {dest}')
+    except Exception as e:
+        print('EMAIL ERROR:', type(e).__name__, str(e))
+        messages.error(request, f'No se pudo enviar el email: {e}')
+    print('=== END EMAIL ===')

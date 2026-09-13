@@ -8,7 +8,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / '.env', override=True)
+
+print('=== EMAIL CONFIG ===')
+print('EMAIL_HOST:', os.environ.get('EMAIL_HOST'))
+print('EMAIL_PORT:', os.environ.get('EMAIL_PORT'))
+print('EMAIL_HOST_USER:', os.environ.get('EMAIL_HOST_USER'))
+print('EMAIL_HOST_PASSWORD:', (os.environ.get('EMAIL_HOST_PASSWORD') or '')[:6] + '***')
+print('DEFAULT_FROM_EMAIL:', os.environ.get('DEFAULT_FROM_EMAIL'))
+print('EMAIL_NOTIFY_TO:', os.environ.get('EMAIL_NOTIFY_TO'))
+print('=== END EMAIL CONFIG ===')
 
 def env(key, default=None):
     return os.environ.get(key, default)
