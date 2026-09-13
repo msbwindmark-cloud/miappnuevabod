@@ -26,7 +26,7 @@
         </select>
     </div>
     <div class="col-md-3">
-        <input type="text" name="usuario" value="{{ usuario }}" class="form-control" placeholder="Usuario..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if usuario %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+        <input type="text" name="usuario" value="{{ usuario }}" class="form-control" placeholder="Usuario..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},1000);" {% if usuario %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
     </div>
     <div class="col-md-3">
         <button class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Filtrar</button>

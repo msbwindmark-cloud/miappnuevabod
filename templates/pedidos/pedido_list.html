@@ -7,7 +7,7 @@
 </div>
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-5">
-        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por proveedor..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},500);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por proveedor..." oninput="var f=this.form;clearTimeout(f._t);f._t=setTimeout(function(){f.submit();},1000);" {% if q %}autofocus{% endif %} onfocus="var e=this;setTimeout(function(){try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}},0);">
     </div>
     <div class="col-md-4">
         <select name="estado" class="form-select" onchange="this.form.submit()">
