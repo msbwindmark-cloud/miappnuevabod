@@ -233,7 +233,7 @@ def conteo_detail(request, pk):
 @login_required
 def stock_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="stock_productos.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="stock_productos_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
     wb = Workbook()
     ws = wb.active
     ws.title = 'Stock'

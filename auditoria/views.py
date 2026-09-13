@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
@@ -110,7 +111,7 @@ def auditoria_view(request):
 @login_required
 def auditoria_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="auditoria_rendimiento.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="auditoria_rendimiento_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
     wb = Workbook()
     ws = wb.active
     ws.title = 'Auditoría'

@@ -188,7 +188,7 @@ def pedido_pdf(request, pk):
 @login_required
 def pedido_excel(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="pedidos.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="pedidos_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
     wb = Workbook()
     ws = wb.active
     ws.title = 'Pedidos'
