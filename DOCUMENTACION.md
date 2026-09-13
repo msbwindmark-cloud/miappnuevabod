@@ -12,7 +12,7 @@ Desarrollada con Django 5.2, Python 3.11 y Bootstrap 5 (Bootswatch Flatly).
 | Usuario  | Contraseña  | Rol          |
 |----------|-------------|--------------|
 | admin    | Moha.93345900  | Superusuario |
-| jefe     | Moha.93345900   | Superusuario |
+| jefe     | Jefe.13092026   | Superusuario |
 
 Superusuarios ven: **Trazabilidad** y **Panel Admin** en la barra de navegación.
 
