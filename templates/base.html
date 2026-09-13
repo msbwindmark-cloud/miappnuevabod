@@ -87,7 +87,7 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="{% url 'core:cambiar_password' %}"><i class="bi bi-key"></i> Cambiar contraseña</a></li>
                         <li><a class="dropdown-item" href="{% url 'core:actividad' %}"><i class="bi bi-clock-history"></i> Mi actividad</a></li>
-                        <li><form method="post" action="{% url 'core:cerrar_sesion_todos' %}">{% csrf_token %}<button class="dropdown-item" type="submit"><i class="bi bi-x-circle"></i> Cerrar otras sesiones</button></form></li>
+                        <li><form method="post" action="{% url 'core:cerrar_sesion_todos' %}" onsubmit="return (function(f){if(typeof Swal!=='undefined'){Swal.fire({title:'¿Cerrar otras sesiones?',text:'Tus otras sesiones en otros navegadores o dispositivos quedarán cerradas. Esta sesión seguirá activa.',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33',confirmButtonText:'Sí, cerrarlas',cancelButtonText:'Cancelar',reverseButtons:true}).then(function(r){if(r.isConfirmed){f.submit();}});return false;}return confirm('¿Cerrar todas las otras sesiones?');})(this)">{% csrf_token %}<button class="dropdown-item" type="submit"><i class="bi bi-x-circle"></i> Cerrar otras sesiones</button></form></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="{% url 'core:logout' %}"><i class="bi bi-box-arrow-right"></i> Salir</a></li>
                     </ul>

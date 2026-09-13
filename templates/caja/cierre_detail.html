@@ -6,7 +6,7 @@
     <div>
         <a href="{% url 'caja:cierre_edit' cierre.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
         <button class="btn btn-success" onclick="(function(t){if(!navigator.clipboard){alert('Portapapeles no disponible.');return;}navigator.clipboard.writeText(t).then(function(){if(typeof Swal!=='undefined'){Swal.fire({icon:'success',title:'¡Copiado!',text:'Pega el resumen en WhatsApp.'});}else{alert('¡Resumen copiado! Pégalo en WhatsApp.');}}).catch(function(){alert('No se pudo copiar.');});})('{{ cierre.resumen_whatsapp|escapejs }}')"><i class="bi bi-whatsapp"></i> Copiar a WhatsApp</button>
-        <form method="post" action="{% url 'caja:cierre_delete' cierre.pk %}" class="d-inline" onsubmit="return confirm('¿Eliminar este cierre?')">
+        <form method="post" action="{% url 'caja:cierre_delete' cierre.pk %}" class="d-inline" onsubmit="return (function(f){if(typeof Swal!=='undefined'){Swal.fire({title:'¿Eliminar este cierre?',text:'Esta acción no se puede deshacer.',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33',confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar',reverseButtons:true}).then(function(r){if(r.isConfirmed){f.submit();}});return false;}return confirm('¿Eliminar este cierre?');})(this)">
             {% csrf_token %}
             <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
         </form>

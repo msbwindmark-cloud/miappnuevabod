@@ -44,7 +44,7 @@
                     <td><span class="badge {% if p.a_pedir %}text-bg-warning{% else %}text-bg-success{% endif %}">{{ p.a_pedir }}</span></td>
                     <td class="text-end">
                         <a href="{% url 'inventario:producto_edit' p.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                        <form class="d-inline" method="post" action="{% url 'inventario:producto_delete' p.pk %}" onsubmit="return confirm('¿Eliminar {{ p.nombre|escapejs }}?')">
+                        <form class="d-inline" method="post" action="{% url 'inventario:producto_delete' p.pk %}" onsubmit="return (function(f){if(typeof Swal!=='undefined'){Swal.fire({title:'¿Eliminar este producto?',text:'{{ p.nombre|escapejs }}',icon:'warning',showCancelButton:true,confirmButtonColor:'#d33',confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar',reverseButtons:true}).then(function(r){if(r.isConfirmed){f.submit();}});return false;}return confirm('¿Eliminar {{ p.nombre|escapejs }}?');})(this)">
                             {% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </form>
                     </td>
