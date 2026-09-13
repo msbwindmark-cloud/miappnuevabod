@@ -25,7 +25,7 @@ def env(key, default=None):
 # Seguridad
 SECRET_KEY = env('SECRET_KEY', 'django-insecure-xgzjv7+_jezdfn9rj(r70)l0%+)+rsf#=**$zca^qa*z5np0j^')
 DEBUG = env('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = [h for h in env('ALLOWED_HOSTS', '127.0.0.1,localhost,testserver').split(',') if h]
+ALLOWED_HOSTS = [h for h in env('ALLOWED_HOSTS', '127.0.0.1,localhost,testserver,miappnuevabod.pythonanywhere.com').split(',') if h]
 
 INSTALLED_APPS = [
     'core.apps.CoreConfig',
