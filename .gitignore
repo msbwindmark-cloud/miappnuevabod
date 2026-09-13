@@ -20,7 +20,7 @@ db.sqlite3-journal
 /media/
 
 # Entorno / secretos
-.env
+# .env
 
 # Notas personales con credenciales
 mis email my correos (3) - copia.rtf
