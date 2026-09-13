@@ -113,6 +113,32 @@ def proveedor_create(request):
 
 
 @login_required
+def proveedor_edit(request, pk):
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+    if request.method == 'POST':
+        form = ProveedorForm(request.POST, instance=proveedor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Proveedor actualizado.')
+            return redirect('inventario:proveedor_list')
+    else:
+        form = ProveedorForm(instance=proveedor)
+    return render(request, 'generic_form.html', {'form': form, 'titulo': f'Editar {proveedor.nombre}'})
+
+
+@login_required
+@require_POST
+def proveedor_delete(request, pk):
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+    try:
+        proveedor.delete()
+        messages.success(request, 'Proveedor eliminado.')
+    except Exception:
+        messages.error(request, 'No se puede eliminar: tiene productos asociados.')
+    return redirect('inventario:proveedor_list')
+
+
+@login_required
 def categoria_create(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
